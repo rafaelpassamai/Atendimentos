@@ -1,0 +1,56 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 35 45% 97%;
+  --foreground: 24 27% 14%;
+  --card: 0 0% 100%;
+  --card-foreground: 24 27% 14%;
+  --primary: 18 81% 42%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 32 44% 92%;
+  --secondary-foreground: 24 27% 14%;
+  --muted: 36 26% 91%;
+  --muted-foreground: 20 14% 37%;
+  --accent: 14 100% 93%;
+  --accent-foreground: 22 43% 22%;
+  --border: 20 23% 85%;
+  --ring: 18 81% 42%;
+  --success: 146 63% 36%;
+  --warning: 34 92% 45%;
+  --destructive: 0 84% 52%;
+}
+
+.dark {
+  --background: 215 28% 9%;
+  --foreground: 210 20% 93%;
+  --card: 216 26% 12%;
+  --card-foreground: 210 20% 93%;
+  --primary: 20 93% 58%;
+  --primary-foreground: 220 30% 10%;
+  --secondary: 217 22% 18%;
+  --secondary-foreground: 210 20% 93%;
+  --muted: 216 20% 16%;
+  --muted-foreground: 215 16% 67%;
+  --accent: 218 24% 22%;
+  --accent-foreground: 210 20% 93%;
+  --border: 216 18% 24%;
+  --ring: 20 93% 58%;
+  --success: 146 62% 45%;
+  --warning: 35 94% 58%;
+  --destructive: 0 78% 61%;
+}
+
+body {
+  @apply bg-background text-foreground font-sans antialiased;
+  background-image: radial-gradient(circle at top left, rgba(255, 180, 120, 0.18), transparent 44%),
+    radial-gradient(circle at right, rgba(252, 231, 167, 0.25), transparent 30%);
+}
+
+.dark body {
+  background-image: radial-gradient(circle at top left, rgba(255, 110, 32, 0.2), transparent 36%),
+    radial-gradient(circle at right, rgba(13, 148, 136, 0.18), transparent 32%);
+}

@@ -1,0 +1,15 @@
+{
+  "name": "helpdesk-mvp",
+  "private": true,
+  "version": "0.1.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm run dev --workspace @helpdesk/web",
+    "dev:api": "npm run build --workspace @helpdesk/shared && npm run start:dev --workspace @helpdesk/api",
+    "build": "npm run build --workspace @helpdesk/shared && npm run build --workspace @helpdesk/api && npm run build --workspace @helpdesk/web",
+    "lint": "npm run lint --workspace @helpdesk/api && npm run lint --workspace @helpdesk/web"
+  }
+}
