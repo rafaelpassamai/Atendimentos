@@ -91,6 +91,7 @@ Project reference provided: `djvjpxnwtlwwylxdhapk`
 1. Create a Supabase project (or use existing one).
 2. Run SQL migration:
    - `supabase/migrations/20260222_init_helpdesk.sql`
+   - `supabase/migrations/20260224_ticket_tasks_upgrade.sql` (tasks fields + list_tickets update)
 3. Seed base catalogs:
    - `supabase/seeds/seed.sql`
 4. Create staff users in Supabase Auth Dashboard.
