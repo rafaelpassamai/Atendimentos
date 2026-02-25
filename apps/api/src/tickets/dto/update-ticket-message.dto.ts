@@ -1,13 +1,14 @@
 import { IsBoolean, IsDateString, IsOptional, IsString, MinLength } from 'class-validator';
 
-export class AddTicketMessageDto {
+export class UpdateTicketMessageDto {
+  @IsOptional()
   @IsString()
   @MinLength(1)
-  content!: string;
+  content?: string;
 
   @IsOptional()
   @IsBoolean()
-  is_internal?: boolean;
+  is_done?: boolean;
 
   @IsOptional()
   @IsDateString()

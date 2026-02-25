@@ -82,6 +82,10 @@ create table if not exists public.ticket_messages (
   author_contact_id uuid references public.company_contacts(id),
   is_internal boolean not null default false,
   content text not null,
+  is_done boolean not null default false,
+  completed_at timestamptz,
+  due_date timestamptz,
+  observation text,
   created_at timestamptz default now(),
   constraint chk_message_author
   check (
@@ -179,7 +183,7 @@ begin
       and (
         p_tab is null
         or (p_tab = 'queue' and t.status = 'open')
-        or (p_tab = 'my' and t.assigned_to_user_id = p_user_id)
+        or (p_tab = 'my' and (t.assigned_to_user_id = p_user_id or t.created_by_user_id = p_user_id))
         or (p_tab = 'all' and p_user_type = 'admin')
       )
       and (p_status is null or t.status = p_status)

@@ -12,6 +12,7 @@ import { AuthUser } from '../common/types';
 import { AddTicketMessageDto } from './dto/add-ticket-message.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { ListTicketsQueryDto } from './dto/list-tickets-query.dto';
+import { UpdateTicketMessageDto } from './dto/update-ticket-message.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 import { TicketsService } from './tickets.service';
 
@@ -51,6 +52,16 @@ export class TicketsController {
     @CurrentUser() user: AuthUser,
   ) {
     return this.ticketsService.addMessage(id, body, user);
+  }
+
+  @Patch(':id/messages/:messageId')
+  updateMessage(
+    @Param('id') id: string,
+    @Param('messageId') messageId: string,
+    @Body() body: UpdateTicketMessageDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.ticketsService.updateMessage(id, messageId, body, user);
   }
 
   @Patch(':id')

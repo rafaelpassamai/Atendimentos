@@ -69,6 +69,10 @@ export interface TicketMessage {
   author_contact_id: string | null;
   is_internal: boolean;
   content: string;
+  is_done: boolean;
+  completed_at: string | null;
+  due_date: string | null;
+  observation: string | null;
   created_at: string;
 }
 

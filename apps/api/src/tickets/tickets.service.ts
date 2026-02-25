@@ -9,6 +9,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { AddTicketMessageDto } from './dto/add-ticket-message.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { ListTicketsQueryDto } from './dto/list-tickets-query.dto';
+import { UpdateTicketMessageDto } from './dto/update-ticket-message.dto';
 import { UpdateTicketDto } from './dto/update-ticket.dto';
 
 interface TicketListRpcRow {
@@ -173,6 +174,10 @@ export class TicketsService {
         author_user_id: user.id,
         is_internal: false,
         content: body.description,
+        is_done: false,
+        observation: null,
+        due_date: null,
+        completed_at: null,
       });
 
     if (messageError) {
@@ -191,9 +196,64 @@ export class TicketsService {
       .insert({
         ticket_id: id,
         author_user_id: user.id,
-        is_internal: body.is_internal,
+        is_internal: body.is_internal ?? false,
         content: body.content,
+        is_done: false,
+        due_date: body.due_date ?? null,
+        observation: body.observation ?? null,
+        completed_at: null,
       })
+      .select('*')
+      .single();
+
+    if (error) {
+      throw error;
+    }
+
+    await this.touchTicket(id);
+    return data;
+  }
+
+  async updateMessage(
+    id: string,
+    messageId: string,
+    body: UpdateTicketMessageDto,
+    user: AuthUser,
+  ) {
+    const ticket = await this.getTicketById(id);
+    this.ensureTicketAccess(ticket, user);
+
+    const { data: existingMessage, error: messageError } = await this.supabaseService.client
+      .from('ticket_messages')
+      .select('*')
+      .eq('id', messageId)
+      .eq('ticket_id', id)
+      .single();
+
+    if (messageError || !existingMessage) {
+      throw new NotFoundException('Task not found');
+    }
+
+    const payload: Record<string, unknown> = {};
+    if (typeof body.content !== 'undefined') {
+      payload.content = body.content;
+    }
+    if (typeof body.due_date !== 'undefined') {
+      payload.due_date = body.due_date;
+    }
+    if (typeof body.observation !== 'undefined') {
+      payload.observation = body.observation;
+    }
+    if (typeof body.is_done !== 'undefined') {
+      payload.is_done = body.is_done;
+      payload.completed_at = body.is_done ? new Date().toISOString() : null;
+    }
+
+    const { data, error } = await this.supabaseService.client
+      .from('ticket_messages')
+      .update(payload)
+      .eq('id', messageId)
+      .eq('ticket_id', id)
       .select('*')
       .single();
 

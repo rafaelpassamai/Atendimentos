@@ -3,13 +3,14 @@
 import { TicketMessage, TicketWithRelations } from '@helpdesk/shared';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useParams } from 'next/navigation';
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
@@ -18,12 +19,13 @@ import { PRIORITIES, STATUSES } from '@/lib/constants';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
 
-const messageSchema = z.object({
+const taskSchema = z.object({
   content: z.string().min(1),
-  is_internal: z.boolean(),
+  due_date: z.string().optional(),
+  observation: z.string().optional(),
 });
 
-type MessageValues = z.infer<typeof messageSchema>;
+type TaskValues = z.infer<typeof taskSchema>;
 
 type TicketDetailResponse = {
   ticket: TicketWithRelations;
@@ -38,17 +40,19 @@ export default function TicketDetailPage() {
   const catalogs = useCatalogs();
   const [status, setStatus] = useState('');
   const [priority, setPriority] = useState('');
+  const [taskNotes, setTaskNotes] = useState<Record<string, string>>({});
 
   const detailQuery = useQuery({
     queryKey: ['ticket-detail', ticketId],
     queryFn: () => api.get<TicketDetailResponse>(`/tickets/${ticketId}`),
   });
 
-  const messageForm = useForm<MessageValues>({
-    resolver: zodResolver(messageSchema),
+  const taskForm = useForm<TaskValues>({
+    resolver: zodResolver(taskSchema),
     defaultValues: {
       content: '',
-      is_internal: false,
+      due_date: '',
+      observation: '',
     },
   });
 
@@ -68,11 +72,26 @@ export default function TicketDetailPage() {
     onError: (error: Error) => toast.error(error.message),
   });
 
-  const addMessageMutation = useMutation({
-    mutationFn: (values: MessageValues) => api.post(`/tickets/${ticketId}/messages`, values),
+  const addTaskMutation = useMutation({
+    mutationFn: (values: TaskValues) =>
+      api.post(`/tickets/${ticketId}/messages`, {
+        content: values.content,
+        due_date: values.due_date ? new Date(values.due_date).toISOString() : undefined,
+        observation: values.observation || undefined,
+      }),
     onSuccess: () => {
-      toast.success('Message added');
-      messageForm.reset({ content: '', is_internal: false });
+      toast.success('Task added');
+      taskForm.reset({ content: '', due_date: '', observation: '' });
+      refresh();
+    },
+    onError: (error: Error) => toast.error(error.message),
+  });
+
+  const updateTaskMutation = useMutation({
+    mutationFn: (payload: { messageId: string; body: Record<string, unknown> }) =>
+      api.patch(`/tickets/${ticketId}/messages/${payload.messageId}`, payload.body),
+    onSuccess: () => {
+      toast.success('Task updated');
       refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -97,6 +116,8 @@ export default function TicketDetailPage() {
   });
 
   const detail = detailQuery.data;
+
+  const tasks = useMemo(() => detail?.messages ?? [], [detail]);
 
   if (!detail) {
     return <p>Loading...</p>;
@@ -178,32 +199,76 @@ export default function TicketDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Timeline</CardTitle>
+          <CardTitle>Tasks</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
-            {detail.messages.map((message) => (
-              <div key={message.id} className="rounded-md border border-border p-3">
-                <p className="whitespace-pre-wrap text-sm">{message.content}</p>
-                <p className="mt-2 text-xs text-muted-foreground">
-                  {message.is_internal ? 'Internal note' : 'Message'} - {new Date(message.created_at).toLocaleString()}
-                </p>
-              </div>
-            ))}
+            {tasks.map((task) => {
+              const observationValue = taskNotes[task.id] ?? task.observation ?? '';
+              return (
+                <div key={task.id} className="rounded-md border border-border p-3">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className={`text-sm ${task.is_done ? 'line-through text-muted-foreground' : ''}`}>{task.content}</p>
+                    <Button
+                      size="sm"
+                      variant={task.is_done ? 'secondary' : 'default'}
+                      onClick={() => updateTaskMutation.mutate({ messageId: task.id, body: { is_done: !task.is_done } })}
+                    >
+                      {task.is_done ? 'Reopen' : 'Mark done'}
+                    </Button>
+                  </div>
+
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    Created: {new Date(task.created_at).toLocaleString()}
+                    {task.due_date ? ` | Due: ${new Date(task.due_date).toLocaleString()}` : ''}
+                    {task.completed_at ? ` | Completed: ${new Date(task.completed_at).toLocaleString()}` : ''}
+                  </p>
+
+                  <div className="mt-3 space-y-2">
+                    <Label>Observation</Label>
+                    <Textarea
+                      value={observationValue}
+                      onChange={(event) =>
+                        setTaskNotes((current) => ({
+                          ...current,
+                          [task.id]: event.target.value,
+                        }))
+                      }
+                    />
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() =>
+                        updateTaskMutation.mutate({
+                          messageId: task.id,
+                          body: { observation: observationValue || '' },
+                        })
+                      }
+                    >
+                      Save observation
+                    </Button>
+                  </div>
+                </div>
+              );
+            })}
+            {tasks.length === 0 ? <p className="text-sm text-muted-foreground">No tasks yet.</p> : null}
           </div>
 
-          <form
-            className="space-y-3"
-            onSubmit={messageForm.handleSubmit((values) => addMessageMutation.mutate(values))}
-          >
-            <Label>Add message / note</Label>
-            <Textarea {...messageForm.register('content')} />
-            <label className="flex items-center gap-2 text-sm">
-              <input type="checkbox" {...messageForm.register('is_internal')} />
-              Internal note
-            </label>
-            <Button type="submit" disabled={addMessageMutation.isPending}>
-              {addMessageMutation.isPending ? 'Sending...' : 'Add'}
+          <form className="space-y-3 border-t border-border pt-4" onSubmit={taskForm.handleSubmit((values) => addTaskMutation.mutate(values))}>
+            <Label>New task</Label>
+            <Textarea placeholder="Describe the task" {...taskForm.register('content')} />
+            <div className="grid gap-3 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Due date (optional)</Label>
+                <Input type="datetime-local" {...taskForm.register('due_date')} />
+              </div>
+              <div className="space-y-2">
+                <Label>Observation (optional)</Label>
+                <Textarea {...taskForm.register('observation')} />
+              </div>
+            </div>
+            <Button type="submit" disabled={addTaskMutation.isPending}>
+              {addTaskMutation.isPending ? 'Adding...' : 'Add task'}
             </Button>
           </form>
         </CardContent>
