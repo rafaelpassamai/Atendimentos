@@ -12,6 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useCatalogs } from '@/hooks/use-catalogs';
+import { useMe } from '@/hooks/use-me';
 import { PRIORITIES, STATUSES } from '@/lib/constants';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
@@ -38,6 +39,7 @@ export default function NewTicketPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const catalogs = useCatalogs();
+  const me = useMe();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
@@ -66,6 +68,19 @@ export default function NewTicketPage() {
       toast.error(error.message || 'Failed to create ticket');
     },
   });
+
+  if (me.data && me.data.user_type !== 'admin') {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle>Acesso restrito</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground">Somente gestores (admin) podem abrir novos chamados.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   return (
     <div className="space-y-6">

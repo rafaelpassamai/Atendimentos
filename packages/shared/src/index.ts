@@ -17,6 +17,7 @@ export interface Profile {
   email: string;
   user_type: UserType;
   is_active: boolean;
+  preferred_category_ids: string[] | null;
   created_at: string;
 }
 

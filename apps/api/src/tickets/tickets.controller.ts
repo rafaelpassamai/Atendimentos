@@ -8,6 +8,7 @@ import {
   Query,
 } from '@nestjs/common';
 import { CurrentUser } from '../auth/current-user.decorator';
+import { Roles } from '../auth/roles.decorator';
 import { AuthUser } from '../common/types';
 import { AddTicketMessageDto } from './dto/add-ticket-message.dto';
 import { CreateTicketDto } from './dto/create-ticket.dto';
@@ -40,6 +41,7 @@ export class TicketsController {
     return this.ticketsService.detail(id, user);
   }
 
+  @Roles('admin')
   @Post()
   create(@Body() body: CreateTicketDto, @CurrentUser() user: AuthUser) {
     return this.ticketsService.create(body, user);
@@ -64,6 +66,7 @@ export class TicketsController {
     return this.ticketsService.updateMessage(id, messageId, body, user);
   }
 
+  @Roles('admin')
   @Patch(':id')
   update(
     @Param('id') id: string,

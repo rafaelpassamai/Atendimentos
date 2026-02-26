@@ -1,22 +1,5 @@
-alter table public.ticket_messages
-  add column if not exists is_done boolean not null default false,
-  add column if not exists completed_at timestamptz,
-  add column if not exists due_date timestamptz,
-  add column if not exists observation text;
-
-create or replace function public.priority_rank(priority_value text)
-returns integer
-language sql
-immutable
-as $$
-  select case priority_value
-    when 'urgent' then 4
-    when 'high' then 3
-    when 'medium' then 2
-    when 'low' then 1
-    else 0
-  end;
-$$;
+alter table public.profiles
+  add column if not exists preferred_category_ids uuid[] default '{}';
 
 create or replace function public.list_tickets(
   p_user_id uuid,

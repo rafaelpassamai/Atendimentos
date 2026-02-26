@@ -60,6 +60,7 @@ export class TicketsService {
       p_search: query.search ?? null,
       p_page: query.page ?? 1,
       p_page_size: query.pageSize ?? 20,
+      p_category_ids: user.preferred_category_ids ?? null,
     });
 
     if (error) {

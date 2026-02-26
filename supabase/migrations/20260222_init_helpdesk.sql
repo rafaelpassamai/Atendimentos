@@ -6,6 +6,7 @@ create table if not exists public.profiles (
   email text,
   user_type text not null check (user_type in ('admin','agent')),
   is_active boolean default true,
+  preferred_category_ids uuid[] default '{}',
   created_at timestamptz default now()
 );
 
@@ -134,7 +135,8 @@ create or replace function public.list_tickets(
   p_assigned_to_user_id uuid default null,
   p_search text default null,
   p_page integer default 1,
-  p_page_size integer default 20
+  p_page_size integer default 20,
+  p_category_ids uuid[] default null
 )
 returns table (
   id uuid,
@@ -191,6 +193,11 @@ begin
       and (p_department_id is null or t.department_id = p_department_id)
       and (p_product_id is null or t.product_id = p_product_id)
       and (p_category_id is null or t.category_id = p_category_id)
+      and (
+        p_category_ids is null
+        or array_length(p_category_ids, 1) is null
+        or t.category_id = any(p_category_ids)
+      )
       and (p_assigned_to_user_id is null or t.assigned_to_user_id = p_assigned_to_user_id)
       and (p_search is null or t.title ilike '%' || p_search || '%')
   ), counted as (

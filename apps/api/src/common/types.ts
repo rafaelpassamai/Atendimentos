@@ -6,4 +6,5 @@ export interface AuthUser {
   full_name: string | null;
   user_type: UserType;
   is_active: boolean;
+  preferred_category_ids: string[] | null;
 }

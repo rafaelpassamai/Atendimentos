@@ -66,7 +66,7 @@ export class JwtAuthGuard implements CanActivate {
 
       const { data, error } = await this.supabaseService.client
         .from('profiles')
-        .select('id,full_name,email,user_type,is_active,created_at')
+        .select('id,full_name,email,user_type,is_active,preferred_category_ids,created_at')
         .eq('id', userId)
         .single();
 
@@ -88,6 +88,7 @@ export class JwtAuthGuard implements CanActivate {
         full_name: data.full_name,
         user_type: data.user_type,
         is_active: data.is_active,
+        preferred_category_ids: data.preferred_category_ids ?? null,
       };
 
       return true;
