@@ -13,7 +13,7 @@ import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useCatalogs } from '@/hooks/use-catalogs';
 import { useMe } from '@/hooks/use-me';
-import { PRIORITIES, STATUSES } from '@/lib/constants';
+import { PRIORITIES, PRIORITY_LABEL, STATUSES, STATUS_LABEL } from '@/lib/constants';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
 
@@ -61,22 +61,22 @@ export default function NewTicketPage() {
     },
     onSuccess: (ticket) => {
       queryClient.invalidateQueries({ queryKey: ['tickets'] });
-      toast.success('Ticket created');
+      toast.success('Chamado criado');
       router.push(`/tickets/${ticket.id}`);
     },
     onError: (error: Error) => {
-      toast.error(error.message || 'Failed to create ticket');
+      toast.error(error.message || 'Falha ao criar chamado');
     },
   });
 
   if (me.data && me.data.user_type !== 'admin') {
     return (
-      <Card>
+      <Card className="max-w-2xl">
         <CardHeader>
           <CardTitle>Acesso restrito</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-sm text-muted-foreground">Somente gestores (admin) podem abrir novos chamados.</p>
+          <p className="text-sm text-muted-foreground">Somente administradores podem abrir novos chamados.</p>
         </CardContent>
       </Card>
     );
@@ -84,44 +84,49 @@ export default function NewTicketPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Create Ticket</h2>
+      <div>
+        <h2 className="text-3xl font-semibold tracking-tight">Novo chamado</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Abra um chamado interno com contexto completo e solicitante correto.
+        </p>
+      </div>
       <Card>
         <CardHeader>
-          <CardTitle>Internal Ticket Form</CardTitle>
+          <CardTitle>Informacoes do chamado</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-5">
           <form className="space-y-4" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
             <div className="space-y-2">
-              <Label>Title</Label>
-              <Input {...form.register('title')} />
+              <Label>Titulo</Label>
+              <Input placeholder="Resumo curto da solicitacao" {...form.register('title')} />
             </div>
             <div className="space-y-2">
-              <Label>Description</Label>
-              <Textarea {...form.register('description')} />
+              <Label>Descricao</Label>
+              <Textarea className="min-h-32" placeholder="Descreva contexto, impacto e resultado esperado." {...form.register('description')} />
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-4 rounded-xl border border-border/80 bg-muted/35 p-4 md:grid-cols-2">
               <div className="space-y-2">
                 <Label>Status</Label>
                 <Select
                   value={form.watch('status')}
                   onValueChange={(value) => form.setValue('status', value as FormValues['status'])}
-                  options={STATUSES.map((item) => ({ label: item, value: item }))}
+                  options={STATUSES.map((item) => ({ label: STATUS_LABEL[item], value: item }))}
                 />
               </div>
               <div className="space-y-2">
-                <Label>Priority</Label>
+                <Label>Prioridade</Label>
                 <Select
                   value={form.watch('priority')}
                   onValueChange={(value) => form.setValue('priority', value as FormValues['priority'])}
-                  options={PRIORITIES.map((item) => ({ label: item, value: item }))}
+                  options={PRIORITIES.map((item) => ({ label: PRIORITY_LABEL[item], value: item }))}
                 />
               </div>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-3">
+            <div className="grid gap-4 rounded-xl border border-border/80 bg-muted/35 p-4 md:grid-cols-3">
               <div className="space-y-2">
-                <Label>Department</Label>
+                <Label>Departamento</Label>
                 <Select
                   value={form.watch('department_id')}
                   onValueChange={(value) => form.setValue('department_id', value || undefined)}
@@ -129,7 +134,7 @@ export default function NewTicketPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Product</Label>
+                <Label>Produto</Label>
                 <Select
                   value={form.watch('product_id')}
                   onValueChange={(value) => form.setValue('product_id', value || undefined)}
@@ -137,7 +142,7 @@ export default function NewTicketPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Category</Label>
+                <Label>Categoria</Label>
                 <Select
                   value={form.watch('category_id')}
                   onValueChange={(value) => form.setValue('category_id', value || undefined)}
@@ -146,9 +151,9 @@ export default function NewTicketPage() {
               </div>
             </div>
 
-            <div className="grid gap-3 md:grid-cols-2">
+            <div className="grid gap-4 rounded-xl border border-border/80 bg-muted/35 p-4 md:grid-cols-2">
               <div className="space-y-2">
-                <Label>Company</Label>
+                <Label>Empresa</Label>
                 <Select
                   value={form.watch('company_id')}
                   onValueChange={(value) => form.setValue('company_id', value || undefined)}
@@ -156,7 +161,7 @@ export default function NewTicketPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>Requested by contact</Label>
+                <Label>Solicitado por contato</Label>
                 <Select
                   value={form.watch('requested_by_contact_id')}
                   onValueChange={(value) => form.setValue('requested_by_contact_id', value || undefined)}
@@ -169,13 +174,15 @@ export default function NewTicketPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>Requested by email (optional)</Label>
-              <Input {...form.register('requested_by_email')} />
+              <Label>Email do solicitante (opcional)</Label>
+              <Input placeholder="cliente@empresa.com" {...form.register('requested_by_email')} />
             </div>
 
-            <Button type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? 'Creating...' : 'Create Ticket'}
-            </Button>
+            <div className="flex justify-end">
+              <Button type="submit" disabled={mutation.isPending}>
+                {mutation.isPending ? 'Criando...' : 'Criar chamado'}
+              </Button>
+            </div>
           </form>
         </CardContent>
       </Card>

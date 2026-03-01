@@ -32,7 +32,7 @@ export default function LoginPage() {
     mutationFn: async (values: FormData) => {
       const { data, error } = await supabase.auth.signInWithPassword(values);
       if (error || !data.session) {
-        throw new Error(error?.message ?? 'Invalid credentials');
+        throw new Error(error?.message ?? 'Credenciais invalidas');
       }
       setAccessTokenCookie(data.session.access_token);
       return data;
@@ -49,7 +49,7 @@ export default function LoginPage() {
       </div>
       <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle>Staff Login</CardTitle>
+          <CardTitle>Login da equipe</CardTitle>
         </CardHeader>
         <CardContent>
           <form className="space-y-4" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
@@ -63,7 +63,7 @@ export default function LoginPage() {
             </div>
             {mutation.error instanceof Error ? <p className="text-sm text-destructive">{mutation.error.message}</p> : null}
             <Button className="w-full" type="submit" disabled={mutation.isPending}>
-              {mutation.isPending ? 'Signing in...' : 'Sign in'}
+              {mutation.isPending ? 'Entrando...' : 'Entrar'}
             </Button>
           </form>
         </CardContent>

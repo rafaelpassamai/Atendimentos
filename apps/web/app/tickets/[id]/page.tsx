@@ -15,7 +15,7 @@ import { Label } from '@/components/ui/label';
 import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { useCatalogs } from '@/hooks/use-catalogs';
-import { PRIORITIES, STATUSES } from '@/lib/constants';
+import { PRIORITIES, PRIORITY_LABEL, STATUSES, STATUS_LABEL } from '@/lib/constants';
 import { api } from '@/lib/api-client';
 import { toast } from 'sonner';
 
@@ -66,7 +66,7 @@ export default function TicketDetailPage() {
   const patchMutation = useMutation({
     mutationFn: (payload: Record<string, unknown>) => api.patch(`/tickets/${ticketId}`, payload),
     onSuccess: () => {
-      toast.success('Ticket updated');
+      toast.success('Chamado atualizado');
       refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -80,7 +80,7 @@ export default function TicketDetailPage() {
         observation: values.observation || undefined,
       }),
     onSuccess: () => {
-      toast.success('Task added');
+      toast.success('Tarefa adicionada');
       taskForm.reset({ content: '', due_date: '', observation: '' });
       refresh();
     },
@@ -91,7 +91,7 @@ export default function TicketDetailPage() {
     mutationFn: (payload: { messageId: string; body: Record<string, unknown> }) =>
       api.patch(`/tickets/${ticketId}/messages/${payload.messageId}`, payload.body),
     onSuccess: () => {
-      toast.success('Task updated');
+      toast.success('Tarefa atualizada');
       refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -100,7 +100,7 @@ export default function TicketDetailPage() {
   const assignToMeMutation = useMutation({
     mutationFn: () => api.post(`/tickets/${ticketId}/assign-to-me`),
     onSuccess: () => {
-      toast.success('Assigned to you');
+      toast.success('Atribuido para voce');
       refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -109,7 +109,7 @@ export default function TicketDetailPage() {
   const closeMutation = useMutation({
     mutationFn: () => api.post(`/tickets/${ticketId}/close`),
     onSuccess: () => {
-      toast.success('Ticket closed');
+      toast.success('Chamado fechado');
       refresh();
     },
     onError: (error: Error) => toast.error(error.message),
@@ -120,72 +120,81 @@ export default function TicketDetailPage() {
   const tasks = useMemo(() => detail?.messages ?? [], [detail]);
 
   if (!detail) {
-    return <p>Loading...</p>;
+    return <p className="text-sm text-muted-foreground">Carregando chamado...</p>;
   }
 
   const ticket = detail.ticket;
 
   return (
     <div className="space-y-6">
+      <div>
+        <h2 className="text-3xl font-semibold tracking-tight">Detalhe do chamado</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Gerencie status, atribuicao e tarefas operacionais.</p>
+      </div>
+
       <Card>
         <CardHeader>
-          <CardTitle>{ticket.title}</CardTitle>
+          <CardTitle className="text-xl">{ticket.title}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="flex flex-wrap gap-2">
             <Badge value={ticket.status} />
             <Badge value={ticket.priority} />
           </div>
-          <p className="text-sm text-muted-foreground">Department: {ticket.department?.name ?? '-'}</p>
-          <p className="text-sm text-muted-foreground">Product: {ticket.product?.name ?? '-'}</p>
-          <p className="text-sm text-muted-foreground">Category: {ticket.category?.name ?? '-'}</p>
-          <p className="text-sm text-muted-foreground">Company: {ticket.company?.name ?? '-'}</p>
-          <p className="text-sm text-muted-foreground">
-            Contact: {ticket.requested_by_contact?.name ?? '-'} {ticket.requested_by_contact?.email ?? ''}
-          </p>
+          <div className="grid gap-2 rounded-xl border border-border/80 bg-muted/35 p-4 text-sm text-muted-foreground md:grid-cols-2">
+              <p>Departamento: {ticket.department?.name ?? '-'}</p>
+            <p>Produto: {ticket.product?.name ?? '-'}</p>
+            <p>Categoria: {ticket.category?.name ?? '-'}</p>
+            <p>Empresa: {ticket.company?.name ?? '-'}</p>
+            <p className="md:col-span-2">
+              Contato: {ticket.requested_by_contact?.name ?? '-'} {ticket.requested_by_contact?.email ?? ''}
+            </p>
+          </div>
           {ticket.closed_at ? (
-            <p className="text-sm font-medium text-success">Closed at: {new Date(ticket.closed_at).toLocaleString()}</p>
+            <p className="text-sm font-medium text-success">Fechado em: {new Date(ticket.closed_at).toLocaleString()}</p>
           ) : null}
         </CardContent>
       </Card>
 
       <Card>
         <CardHeader>
-          <CardTitle>Actions</CardTitle>
+          <CardTitle>Acoes</CardTitle>
         </CardHeader>
-        <CardContent className="grid gap-4 md:grid-cols-2">
-          <div className="space-y-2">
-            <Label>Status</Label>
-            <Select
-              value={status || ticket.status}
-              onValueChange={setStatus}
-              options={STATUSES.map((item) => ({ label: item, value: item }))}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Priority</Label>
-            <Select
-              value={priority || ticket.priority}
-              onValueChange={setPriority}
-              options={PRIORITIES.map((item) => ({ label: item, value: item }))}
-            />
+        <CardContent className="space-y-4">
+          <div className="grid gap-4 rounded-xl border border-border/80 bg-muted/35 p-4 md:grid-cols-2">
+            <div className="space-y-2">
+                <Label>Status</Label>
+                <Select
+                  value={status || ticket.status}
+                  onValueChange={setStatus}
+                  options={STATUSES.map((item) => ({ label: STATUS_LABEL[item], value: item }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Prioridade</Label>
+                <Select
+                  value={priority || ticket.priority}
+                  onValueChange={setPriority}
+                  options={PRIORITIES.map((item) => ({ label: PRIORITY_LABEL[item], value: item }))}
+                />
+              </div>
           </div>
 
-          <div className="flex flex-wrap gap-2 md:col-span-2">
-            <Button onClick={() => patchMutation.mutate({ status: status || ticket.status })}>Update Status</Button>
+          <div className="flex flex-wrap gap-2">
+            <Button onClick={() => patchMutation.mutate({ status: status || ticket.status })}>Atualizar status</Button>
             <Button variant="secondary" onClick={() => patchMutation.mutate({ priority: priority || ticket.priority })}>
-              Update Priority
+              Atualizar prioridade
             </Button>
             <Button variant="outline" onClick={() => assignToMeMutation.mutate()}>
-              Assign to me
+              Atribuir para mim
             </Button>
             <Button variant="destructive" onClick={() => closeMutation.mutate()}>
-              Close ticket
+              Fechar chamado
             </Button>
           </div>
 
-          <div className="space-y-2 md:col-span-2">
-            <Label>Assign to user</Label>
+          <div className="space-y-2">
+            <Label>Atribuir para usuario</Label>
             <Select
               onValueChange={(value) => patchMutation.mutate({ assigned_to_user_id: value })}
               options={(catalogs.data?.staff ?? []).map((item) => ({
@@ -199,33 +208,36 @@ export default function TicketDetailPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Tasks</CardTitle>
+          <CardTitle>Tarefas</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-3">
             {tasks.map((task) => {
               const observationValue = taskNotes[task.id] ?? task.observation ?? '';
               return (
-                <div key={task.id} className="rounded-md border border-border p-3">
+                <div key={task.id} className="rounded-xl border border-border/80 bg-card/70 p-4">
                   <div className="flex items-center justify-between gap-2">
-                    <p className={`text-sm ${task.is_done ? 'line-through text-muted-foreground' : ''}`}>{task.content}</p>
+                    <div className="flex items-center gap-2">
+                      <span className={`h-2.5 w-2.5 rounded-full ${task.is_done ? 'bg-success' : 'bg-warning'}`} />
+                      <p className={`text-sm font-medium ${task.is_done ? 'line-through text-muted-foreground' : ''}`}>{task.content}</p>
+                    </div>
                     <Button
                       size="sm"
                       variant={task.is_done ? 'secondary' : 'default'}
                       onClick={() => updateTaskMutation.mutate({ messageId: task.id, body: { is_done: !task.is_done } })}
                     >
-                      {task.is_done ? 'Reopen' : 'Mark done'}
+                      {task.is_done ? 'Reabrir' : 'Marcar como feito'}
                     </Button>
                   </div>
 
-                  <p className="mt-2 text-xs text-muted-foreground">
-                    Created: {new Date(task.created_at).toLocaleString()}
-                    {task.due_date ? ` | Due: ${new Date(task.due_date).toLocaleString()}` : ''}
-                    {task.completed_at ? ` | Completed: ${new Date(task.completed_at).toLocaleString()}` : ''}
+                  <p className="mt-3 text-xs text-muted-foreground">
+                    Criado em: {new Date(task.created_at).toLocaleString()}
+                    {task.due_date ? ` | Vencimento: ${new Date(task.due_date).toLocaleString()}` : ''}
+                    {task.completed_at ? ` | Concluido em: ${new Date(task.completed_at).toLocaleString()}` : ''}
                   </p>
 
                   <div className="mt-3 space-y-2">
-                    <Label>Observation</Label>
+                    <Label>Observacao</Label>
                     <Textarea
                       value={observationValue}
                       onChange={(event) =>
@@ -245,30 +257,30 @@ export default function TicketDetailPage() {
                         })
                       }
                     >
-                      Save observation
+                      Salvar observacao
                     </Button>
                   </div>
                 </div>
               );
             })}
-            {tasks.length === 0 ? <p className="text-sm text-muted-foreground">No tasks yet.</p> : null}
+            {tasks.length === 0 ? <p className="text-sm text-muted-foreground">Nenhuma tarefa cadastrada.</p> : null}
           </div>
 
           <form className="space-y-3 border-t border-border pt-4" onSubmit={taskForm.handleSubmit((values) => addTaskMutation.mutate(values))}>
-            <Label>New task</Label>
-            <Textarea placeholder="Describe the task" {...taskForm.register('content')} />
+            <Label>Nova tarefa</Label>
+            <Textarea className="min-h-28" placeholder="Descreva a tarefa" {...taskForm.register('content')} />
             <div className="grid gap-3 md:grid-cols-2">
               <div className="space-y-2">
-                <Label>Due date (optional)</Label>
+                <Label>Data limite (opcional)</Label>
                 <Input type="datetime-local" {...taskForm.register('due_date')} />
               </div>
               <div className="space-y-2">
-                <Label>Observation (optional)</Label>
+                <Label>Observacao (opcional)</Label>
                 <Textarea {...taskForm.register('observation')} />
               </div>
             </div>
             <Button type="submit" disabled={addTaskMutation.isPending}>
-              {addTaskMutation.isPending ? 'Adding...' : 'Add task'}
+              {addTaskMutation.isPending ? 'Adicionando...' : 'Adicionar tarefa'}
             </Button>
           </form>
         </CardContent>

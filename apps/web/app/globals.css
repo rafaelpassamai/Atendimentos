@@ -5,20 +5,20 @@
 @tailwind utilities;
 
 :root {
-  --background: 35 45% 97%;
-  --foreground: 24 27% 14%;
+  --background: 32 55% 97%;
+  --foreground: 20 24% 12%;
   --card: 0 0% 100%;
-  --card-foreground: 24 27% 14%;
-  --primary: 18 81% 42%;
+  --card-foreground: 20 24% 12%;
+  --primary: 20 88% 44%;
   --primary-foreground: 0 0% 100%;
-  --secondary: 32 44% 92%;
-  --secondary-foreground: 24 27% 14%;
-  --muted: 36 26% 91%;
-  --muted-foreground: 20 14% 37%;
-  --accent: 14 100% 93%;
-  --accent-foreground: 22 43% 22%;
-  --border: 20 23% 85%;
-  --ring: 18 81% 42%;
+  --secondary: 28 46% 92%;
+  --secondary-foreground: 20 24% 12%;
+  --muted: 33 32% 92%;
+  --muted-foreground: 21 14% 36%;
+  --accent: 15 100% 93%;
+  --accent-foreground: 22 40% 22%;
+  --border: 23 26% 84%;
+  --ring: 20 88% 44%;
   --success: 146 63% 36%;
   --warning: 34 92% 45%;
   --destructive: 0 84% 52%;
@@ -53,4 +53,13 @@ body {
 .dark body {
   background-image: radial-gradient(circle at top left, rgba(255, 110, 32, 0.2), transparent 36%),
     radial-gradient(circle at right, rgba(13, 148, 136, 0.18), transparent 32%);
+}
+
+* {
+  border-color: hsl(var(--border));
+}
+
+::selection {
+  background: hsl(var(--primary) / 0.22);
+  color: hsl(var(--foreground));
 }

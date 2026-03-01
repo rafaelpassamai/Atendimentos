@@ -25,16 +25,16 @@ function CatalogForm({ type }: { type: 'departments' | 'products' | 'categories'
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['catalogs'] });
       form.reset();
-      toast.success('Catalog created');
+      toast.success('Catalogo criado');
     },
     onError: (error: Error) => toast.error(error.message),
   });
 
   return (
     <form className="flex gap-2" onSubmit={form.handleSubmit((values) => mutation.mutate(values))}>
-      <Input placeholder={`New ${type.slice(0, -1)}`} {...form.register('name')} />
+      <Input placeholder={`Novo ${type.slice(0, -1)}`} {...form.register('name')} />
       <Button type="submit" disabled={mutation.isPending}>
-        Add
+        Adicionar
       </Button>
     </form>
   );
@@ -45,12 +45,12 @@ export default function CatalogsPage() {
   const catalogs = useCatalogs();
 
   if (me.data?.user_type !== 'admin') {
-    return <p className="text-sm text-muted-foreground">Only admins can manage catalogs.</p>;
+    return <p className="text-sm text-muted-foreground">Somente administradores podem gerenciar catalogos.</p>;
   }
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Catalogs</h2>
+      <h2 className="text-2xl font-semibold">Catalogos</h2>
 
       {[
         ['departments', catalogs.data?.departments ?? []],
@@ -66,7 +66,7 @@ export default function CatalogsPage() {
             <ul className="grid gap-1 text-sm">
               {(items as Array<{ id: string; name: string; is_active?: boolean }>).map((item) => (
                 <li key={item.id} className="rounded border border-border px-2 py-1">
-                  {item.name} {item.is_active === false ? '(inactive)' : ''}
+                  {item.name} {item.is_active === false ? '(inativo)' : ''}
                 </li>
               ))}
             </ul>

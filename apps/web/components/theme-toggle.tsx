@@ -28,7 +28,7 @@ export function ThemeToggle() {
   return (
     <Button variant="outline" onClick={toggleTheme} className="gap-2">
       {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
-      {theme === 'dark' ? 'Light' : 'Dark'}
+      {theme === 'dark' ? 'Claro' : 'Escuro'}
     </Button>
   );
 }

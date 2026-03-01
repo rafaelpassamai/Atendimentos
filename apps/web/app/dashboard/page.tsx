@@ -22,15 +22,18 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h2 className="text-2xl font-semibold">Dashboard</h2>
+      <div>
+        <h2 className="text-3xl font-semibold tracking-tight">Painel</h2>
+        <p className="mt-1 text-sm text-muted-foreground">Visao geral da operacao de suporte e saude da fila.</p>
+      </div>
 
       <section className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {[
-          ['Open', summary?.open ?? 0],
-          ['In Progress', summary?.in_progress ?? 0],
-          ['Waiting Customer', summary?.waiting_customer ?? 0],
-          ['Resolved Today', summary?.resolved_today ?? 0],
-          ['Closed Today', summary?.closed_today ?? 0],
+          ['Abertos', summary?.open ?? 0],
+          ['Em atendimento', summary?.in_progress ?? 0],
+          ['Aguardando cliente', summary?.waiting_customer ?? 0],
+          ['Resolvidos hoje', summary?.resolved_today ?? 0],
+          ['Fechados hoje', summary?.closed_today ?? 0],
         ].map(([label, value]) => (
           <Card key={String(label)}>
             <CardHeader>
@@ -45,7 +48,7 @@ export default function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Queue Preview</CardTitle>
+          <CardTitle>Previa da fila</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -53,7 +56,7 @@ export default function DashboardPage() {
               <Link
                 href={`/tickets/${ticket.id}`}
                 key={ticket.id}
-                className="flex items-center justify-between rounded-md border border-border p-3 hover:bg-muted"
+                className="flex items-center justify-between rounded-xl border border-border/80 bg-card/70 p-3 transition-colors hover:bg-muted/70"
               >
                 <div>
                   <p className="font-medium">{ticket.title}</p>
@@ -62,7 +65,7 @@ export default function DashboardPage() {
                 <Badge value={ticket.priority} />
               </Link>
             ))}
-            {queueQuery.data?.length === 0 ? <p className="text-sm text-muted-foreground">No open tickets.</p> : null}
+            {queueQuery.data?.length === 0 ? <p className="text-sm text-muted-foreground">Nenhum chamado aberto.</p> : null}
           </div>
         </CardContent>
       </Card>
